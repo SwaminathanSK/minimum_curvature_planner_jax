@@ -64,13 +64,13 @@ def first_derivatives(centreline: Centreline, Ainv: np.ndarray, q: np.ndarray):
     return A_ex_b @ Ainv @ q
 
 def matPxx(N: np.int32, x_dashed: np.ndarray, y_dashed: np.ndarray):
-    return np.diag([ y_dashed[i]**2/(x_dashed[i]**2+y_dashed[i]**2)**3 for i in range(N) ], dtype=np.float64)
+    return np.diag([ y_dashed[i]**2/(x_dashed[i]**2+y_dashed[i]**2)**3 for i in range(N) ])
 
 def matPxy(N: np.int32, x_dashed: np.ndarray, y_dashed: np.ndarray):
-    return np.diag([ -2*x_dashed[i]*y_dashed[i]/(x_dashed[i]**2+y_dashed[i]**2)**3 for i in range(N) ], dtype=np.float64)
+    return np.diag([ -2*x_dashed[i]*y_dashed[i]/(x_dashed[i]**2+y_dashed[i]**2)**3 for i in range(N) ])
 
 def matPyy(N: np.int32, x_dashed: np.ndarray, y_dashed: np.ndarray):
-    return np.diag([ x_dashed[i]**2/(x_dashed[i]**2+y_dashed[i]**2)**3 for i in range(N) ], dtype=np.float64)
+    return np.diag([ x_dashed[i]**2/(x_dashed[i]**2+y_dashed[i]**2)**3 for i in range(N) ])
 
 def matrices_H_f(centreline: Centreline):
     # returns a tuple of the matrices H and f that define the QP
@@ -87,9 +87,9 @@ def matrices_H_f(centreline: Centreline):
     
     x_d = first_derivatives(centreline, Ainv, q_x) # vector containing x_i'
     y_d = first_derivatives(centreline, Ainv, q_y) # vector containing y_i'
-    P_xx = matPxx(centreline, x_d, y_d)
-    P_xy = matPxy(centreline, x_d, y_d)
-    P_yy = matPyy(centreline, x_d, y_d)
+    P_xx = matPxx(centreline.N, x_d, y_d)
+    P_xy = matPxy(centreline.N, x_d, y_d)
+    P_yy = matPyy(centreline.N, x_d, y_d)
 
     H_x = T_n_x.T @ P_xx @ T_n_x
     H_xy = T_n_y.T @ P_xy @ T_n_x
