@@ -1,11 +1,7 @@
 # Import packages.
 import cvxpy as cp
 import numpy as np
-
-
-Tnx = None
-Tny = None
-Tc = None
+from matrices import matAInv, A_ex_comp, q_comp, M_comp, first_derivatives, matPxx, matPxy, matPyy, matrices_H_f
 
 t = 0
 
@@ -38,20 +34,20 @@ for i in range(3):
 
 x_bar_bar_bar = 6 * d[0][0]
 y_bar_bar_bar = 6 * d[0][1]
-def PxCoeff(x_bar, y_bar):
-    return (y_bar)**2/(x_bar**2 + y_bar**2)**3
+# def PxCoeff(x_bar, y_bar):
+#     return (y_bar)**2/(x_bar**2 + y_bar**2)**3
 
-def PxyCoeff(x_bar, y_bar):
-    return (y_bar)*(x_bar)*(-2)/(x_bar**2 + y_bar**2)**3
+# def PxyCoeff(x_bar, y_bar):
+#     return (y_bar)*(x_bar)*(-2)/(x_bar**2 + y_bar**2)**3
 
-def PyCoeff(x_bar, y_bar):
-    return (x_bar)**2/(x_bar**2 + y_bar**2)**3
+# def PyCoeff(x_bar, y_bar):
+#     return (x_bar)**2/(x_bar**2 + y_bar**2)**3
 
-xx, yy, xy = [], [], []
-for i in range(3):
-    xx.append(PxCoeff(x_bar[i], y_bar[i]))
-    yy.append(PyCoeff(x_bar[i], y_bar[i]))
-    xy.append(PxyCoeff(x_bar[i], y_bar[i]))
+# xx, yy, xy = [], [], []
+# for i in range(3):
+#     xx.append(PxCoeff(x_bar[i], y_bar[i]))
+#     yy.append(PyCoeff(x_bar[i], y_bar[i]))
+#     xy.append(PxyCoeff(x_bar[i], y_bar[i]))
 
 def kappa(x_bar,y_bar,x_bar_bar, y_bar_bar):
     return (x_bar*y_bar_bar-y_bar*x_bar_bar)/(x_bar**2+y_bar**2)**1.5
@@ -59,17 +55,20 @@ def kappa(x_bar,y_bar,x_bar_bar, y_bar_bar):
 def kappa_sq(x_bar,y_bar,x_bar_bar, y_bar_bar):
     return ((x_bar*y_bar_bar)**2-2*x_bar*x_bar_bar*y_bar*y_bar_bar+(y_bar*x_bar_bar)**2)/(x_bar**2+y_bar**2)**3
 
-Pxx = np.diag(xx)
-Pyy = np.diag(yy)
-Pxy = np.diag(xy)
+Pxx = matPxx(N: np.int32, x_dashed: x_bar, y_dashed: y_bar):
+Pyy = matPyy(N: np.int32, x_dashed:x_bar , y_dashed: y_bar)
+Pxy = matPxy(N: np.int32, x_dashed: x_bar, y_dashed: y_bar):
 
-qx = np.array([x1, x2, 0, 0, x2, x3, 0, 0, x3, x1, 0, 0])
-qy = np.array([y1, y2, 0, 0, y2, y3, 0, 0, y3, y1, 0, 0])
+qx=q_comp(centreline= None, component=0)
+qy=q_comp(centreline= None, component=1)
 
-Aexc = np.eye(12)
-A_inv = np.eye(12)
-Mx =np.eye(12)
-My=np.eye(12)
+#qx = np.array([x1, x2, 0, 0, x2, x3, 0, 0, x3, x1, 0, 0])
+#qy = np.array([y1, y2, 0, 0, y2, y3, 0, 0, y3, y1, 0, 0])
+
+Aexc = A_ex_comp(2)
+A_inv = matAInv(3)
+Mx =M_comp(centreline=None, component=0)
+My=M_comp(centreline=None, component=1)
 
 Tc=2 * Aexc@A_inv
 Tnx=2 * Aexc @ A_inv @ Mx
