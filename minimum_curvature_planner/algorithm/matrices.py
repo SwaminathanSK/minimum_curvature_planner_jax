@@ -35,7 +35,6 @@ def matAInv(N: np.int32):
         A[i][addr_A_N_1 + 3] = 6 # coeff of d_(n-1)
     A_inv = np.linalg.inv(A)
     A_inv[np.isclose(A_inv, 0, atol=1e-15)] = 0
-    print("A_inv", A_inv) #debug
     return A_inv
 
 def A_ex_comp(N: np.int32, component: np.int32):
