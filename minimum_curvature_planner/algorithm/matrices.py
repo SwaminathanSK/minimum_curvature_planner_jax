@@ -2,7 +2,7 @@
 This file contains functions for generating the various Matrices described in the paper
 """
 
-from minimum_curvature_planner.algorithm.perception_data import Centreline
+from perception_data import Centreline
 import numpy as np
 
 def matAInv(N: np.int32):
@@ -22,7 +22,7 @@ def matAInv(N: np.int32):
         # Equation: 0 = x_1' - x_1' = b_(n-1) + 2c_(n-1) + 3d_(n-1) - b_n
         # i is address of c_n
         A[i][i-1] = -1 # coeff of b_n
-        addr_A_N_1 = (i+N-6)%N # address of a_(n-1)
+        addr_A_N_1 = (i+4*N-6)%(4*N) # address of a_(n-1)
         A[i][addr_A_N_1 + 1] = 1 # coeff of b_(n-1)
         A[i][addr_A_N_1 + 2] = 2 # coeff of c_(n-1)
         A[i][addr_A_N_1 + 3] = 3 # coeff of d_(n-1)
@@ -30,10 +30,13 @@ def matAInv(N: np.int32):
         # Equation: 0 = x_1'' - x_1'' = 2c_(n-1) + 6d_(n-1) - 2c_n
         # i is address of d_n
         A[i][i-1] = -2 # coeff of c_n
-        addr_A_N_1 = (i+N-7)%N # address of a_(n-1)
+        addr_A_N_1 = (i+4*N-7)%(4*N) # address of a_(n-1)
         A[i][addr_A_N_1 + 2] = 2 # coeff of c_(n-1)
         A[i][addr_A_N_1 + 3] = 6 # coeff of d_(n-1)
-    return np.linalg.inv(A)
+    A_inv = np.linalg.inv(A)
+    A_inv[np.isclose(A_inv, 0, atol=1e-15)] = 0
+    print("A_inv", A_inv) #debug
+    return A_inv
 
 def A_ex_comp(N: np.int32, component: np.int32):
     # e.g. returns A_ex,b for component = 1, A_ex,c for component = 2
@@ -78,6 +81,11 @@ def matrices_H_f(centreline: Centreline):
     A_ex_c = A_ex_comp(centreline.N, 2)
     q_x = q_comp(centreline, 0)
     q_y = q_comp(centreline, 1)
+    x_d = first_derivatives(centreline, Ainv, q_x) # vector containing x_i'
+    y_d = first_derivatives(centreline, Ainv, q_y) # vector containing y_i'
+
+    centreline.calc_n(x_d, y_d)
+
     M_x = M_comp(centreline, 0)
     M_y = M_comp(centreline, 1)
 
@@ -85,8 +93,6 @@ def matrices_H_f(centreline: Centreline):
     T_n_x = T_c @ M_x
     T_n_y = T_c @ M_y
     
-    x_d = first_derivatives(centreline, Ainv, q_x) # vector containing x_i'
-    y_d = first_derivatives(centreline, Ainv, q_y) # vector containing y_i'
     P_xx = matPxx(centreline.N, x_d, y_d)
     P_xy = matPxy(centreline.N, x_d, y_d)
     P_yy = matPyy(centreline.N, x_d, y_d)
