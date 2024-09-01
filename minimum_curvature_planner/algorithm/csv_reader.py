@@ -2,7 +2,7 @@ import csv
 import numpy as np
 from perception_data import Centreline
 
-def centreline_from_csv(file_path, delimiter=',', quotechar='"', encoding='utf-8'):
+def centreline_from_csv(vehicle_width, file_path, delimiter=',', quotechar='"', encoding='utf-8'):
     try:
         with open(file_path, 'r', encoding=encoding) as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=delimiter, quotechar=quotechar)
@@ -12,7 +12,7 @@ def centreline_from_csv(file_path, delimiter=',', quotechar='"', encoding='utf-8
                 data[i] = [float(x) for x in data[i]]
                 data = np.array(data[i:len(data)], dtype=np.float64)
                 break
-            centreline = Centreline(len(data), data[:, 0:2], data[:, 2], 0.7)
+            centreline = Centreline(len(data), data[:, 0:2], data[:, 2], vehicle_width)
             return centreline
     except FileNotFoundError:
         print(f"Error: File '{file_path}' not found.")
