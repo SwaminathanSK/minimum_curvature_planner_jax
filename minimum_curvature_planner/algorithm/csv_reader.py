@@ -21,4 +21,5 @@ def centreline_from_csv(vehicle_width, file_path, delimiter=',', quotechar='"', 
 
 if __name__ == "__main__":
     # centreline = centreline_from_csv('maps/Budapest_centerline.csv')
-    centreline = centreline_from_csv('maps/Spielberg_centerline.csv')
+    centreline = centreline_from_csv(1.0, 'maps/Spielberg_centerline.csv')
+    print()
