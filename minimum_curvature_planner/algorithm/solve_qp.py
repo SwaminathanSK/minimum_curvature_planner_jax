@@ -13,6 +13,8 @@ def solve_for_alpha(centreline: Centreline):
 
     # Define and solve the CVXPY problem.
     P = (P+P.T)/2
+
+    print(alpha_max.shape)
     prob = cp.Problem(cp.Minimize((1/2)*cp.quad_form(alpha, cp.psd_wrap(P)) + q.T @ alpha),
                     [alpha <= alpha_max,
                     alpha >= alpha_min])

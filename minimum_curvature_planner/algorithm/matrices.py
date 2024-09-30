@@ -5,60 +5,100 @@ This file contains functions for generating the various Matrices described in th
 from perception_data import Centreline
 import numpy as np
 
+# Make matrix 3*N x 3*N
+# we remove one of the smoothness constraints (double derivative sharing at end points) to make it full-rank
 def matAInv(N: np.int32):
-    A = np.zeros((4*N, 4*N))
-    for i in range(0, 4*N, 4):
+    # A = np.zeros((4*N, 4*N))
+    # for i in range(0, 4*N, 4):
+    #     # Equation: x_n = a_n
+    #     # i is address of a_n
+    #     A[i][i] = 1 # coeff of a_n
+    # for i in range(1, 4*N, 4):
+    #     # Equation: x_(n+1) = a_n + b_n + c_n + d_n
+    #     # i is address of b_n
+    #     A[i][i-1] = 1 # coeff of a_n
+    #     A[i][i] = 1 # coeff of b_n
+    #     A[i][i+1] = 1 # coeff of c_n
+    #     A[i][i+2] = 1 # coeff of d_n
+    # for i in range(2, 4*N, 4):
+    #     # Equation: 0 = x_1' - x_1' = b_(n-1) + 2c_(n-1) + 3d_(n-1) - b_n
+    #     # i is address of c_n
+    #     A[i][i-1] = -1 # coeff of b_n
+    #     addr_A_N_1 = (i+4*N-6)%(4*N) # address of a_(n-1)
+    #     A[i][addr_A_N_1 + 1] = 1 # coeff of b_(n-1)
+    #     A[i][addr_A_N_1 + 2] = 2 # coeff of c_(n-1)
+    #     A[i][addr_A_N_1 + 3] = 3 # coeff of d_(n-1)
+    # for i in range(3, 4*N, 4):
+    #     # Equation: 0 = x_1'' - x_1'' = 2c_(n-1) + 6d_(n-1) - 2c_n
+    #     # i is address of d_n
+    #     A[i][i-1] = -2 # coeff of c_n
+    #     addr_A_N_1 = (i+4*N-7)%(4*N) # address of a_(n-1)
+    #     A[i][addr_A_N_1 + 2] = 2 # coeff of c_(n-1)
+    #     A[i][addr_A_N_1 + 3] = 6 # coeff of d_(n-1)
+
+    # For 2 degree poly, with 3 constraints.
+    A = np.zeros((3*N, 3*N))
+    for i in range(0, 3*N, 3):
         # Equation: x_n = a_n
         # i is address of a_n
         A[i][i] = 1 # coeff of a_n
-    for i in range(1, 4*N, 4):
-        # Equation: x_(n+1) = a_n + b_n + c_n + d_n
+    for i in range(1, 3*N, 3):
+        # Equation: x_(n+1) = a_n + b_n + c_n
         # i is address of b_n
         A[i][i-1] = 1 # coeff of a_n
         A[i][i] = 1 # coeff of b_n
         A[i][i+1] = 1 # coeff of c_n
-        A[i][i+2] = 1 # coeff of d_n
-    for i in range(2, 4*N, 4):
-        # Equation: 0 = x_1' - x_1' = b_(n-1) + 2c_(n-1) + 3d_(n-1) - b_n
+    for i in range(2, 3*N, 3):
+        # Equation: 0 = x_1' - x_1' = b_(n-1) + 2c_(n-1) - b_n
         # i is address of c_n
         A[i][i-1] = -1 # coeff of b_n
-        addr_A_N_1 = (i+4*N-6)%(4*N) # address of a_(n-1)
+        addr_A_N_1 = (i+3*N-5)%(3*N) # address of a_(n-1)
         A[i][addr_A_N_1 + 1] = 1 # coeff of b_(n-1)
         A[i][addr_A_N_1 + 2] = 2 # coeff of c_(n-1)
-        A[i][addr_A_N_1 + 3] = 3 # coeff of d_(n-1)
-    for i in range(3, 4*N, 4):
-        # Equation: 0 = x_1'' - x_1'' = 2c_(n-1) + 6d_(n-1) - 2c_n
-        # i is address of d_n
-        A[i][i-1] = -2 # coeff of c_n
-        addr_A_N_1 = (i+4*N-7)%(4*N) # address of a_(n-1)
-        A[i][addr_A_N_1 + 2] = 2 # coeff of c_(n-1)
-        A[i][addr_A_N_1 + 3] = 6 # coeff of d_(n-1)
+    print(A)
     A_inv = np.linalg.inv(A)
     A_inv[np.isclose(A_inv, 0, atol=1e-15)] = 0
     return A_inv
 
 def A_ex_comp(N: np.int32, component: np.int32):
     # e.g. returns A_ex,b for component = 1, A_ex,c for component = 2
-    A_ex = np.zeros((N, 4*N), dtype=np.float64)
-    for i in range(N): A_ex[i][4*i + component] = 1
+    # A_ex = np.zeros((N, 4*N), dtype=np.float64)
+    # for i in range(N): A_ex[i][4*i + component] = 1
+    # return A_ex
+
+    # for 2 degree polynomial
+    A_ex = np.zeros((N, 3*N), dtype=np.float64)
+    for i in range(N): A_ex[i][3*i + component] = 1
     return A_ex
 
 def q_comp(centreline: Centreline, component: np.int32):
     # e.g. q_x for component = 0, q_y for component = 1
-    q = np.ndarray(4*centreline.N, dtype=np.float64)
-    for i in range(0, 4*centreline.N, 4):
-        q[i] = centreline.p[i//4, component]
-        q[i+1] = centreline.p[(i//4 + 1)%centreline.N, component]
+    # q = np.ndarray(4*centreline.N, dtype=np.float64)
+    # for i in range(0, 4*centreline.N, 4):
+    #     q[i] = centreline.p[i//4, component]
+    #     q[i+1] = centreline.p[(i//4 + 1)%centreline.N, component]
+    #     q[i+2] = 0
+    #     q[i+3] = 0
+    # return q
+
+    q = np.ndarray(3*centreline.N, dtype=np.float64)
+    for i in range(0, 3*centreline.N, 3):
+        q[i] = centreline.p[i//3, component]
+        q[i+1] = centreline.p[(i//3 + 1)%centreline.N, component]
         q[i+2] = 0
-        q[i+3] = 0
     return q
 
 def M_comp(centreline: Centreline, component: np.int32):
     # e.g. M_x for component = 0, M_y for component = 1
-    M = np.zeros((4*centreline.N, centreline.N), dtype=np.float64)
-    for i in range(0, 4*centreline.N, 4):
-        M[i, i//4] = centreline.n[i//4, component]
-        M[i+1, (i//4 + 1)%centreline.N] = centreline.n[(i//4 + 1)%centreline.N, component]
+    # M = np.zeros((4*centreline.N, centreline.N), dtype=np.float64)
+    # for i in range(0, 4*centreline.N, 4):
+    #     M[i, i//4] = centreline.n[i//4, component]
+    #     M[i+1, (i//4 + 1)%centreline.N] = centreline.n[(i//4 + 1)%centreline.N, component]
+    # return M
+    M = np.zeros((3*centreline.N, centreline.N), dtype=np.float64)
+    for i in range(0, 3*centreline.N, 3):
+        M[i, i//3] = centreline.n[i//3, component]
+        M[i+1, (i//3 + 1)%centreline.N] = centreline.n[(i//3 + 1)%centreline.N, component]
     return M
 
 def first_derivatives(centreline: Centreline, Ainv: np.ndarray, q: np.ndarray):
