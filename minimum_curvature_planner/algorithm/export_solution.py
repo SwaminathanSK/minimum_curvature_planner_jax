@@ -14,13 +14,13 @@ def export_solution(points: np.ndarray, output_path: str, format: str = 'csv'):
             {
                 'pose': {
                     'position': {
-                        'x': point[0],
-                        'y': point[1],
+                        'x': float(points[i, 0]),
+                        'y': float(points[i, 1]),
                         'z': 0.0
                     }
                 }
             }
-            for point in points
+            for i in range(points.shape[0])
         ]
         with open(output_path, mode='w') as file:
             json.dump(json_data, file, indent=4)
