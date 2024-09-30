@@ -46,30 +46,30 @@ from functools import partial
 
 @partial(jit, static_argnums=(0,)) #  ASSUMING N wont change
 def matAInv(N: int):
-    A = jnp.zeros((4*N, 4*N))
+    A = jnp.zeros((3*N, 3*N))
     
     # Fill the matrix using vectorized operations
-    indices = jnp.arange(0, 4*N, 4)
+    indices = jnp.arange(0, 3*N, 3)
     A = A.at[indices, indices].set(1)
     
-    indices = jnp.arange(1, 4*N, 4)
+    indices = jnp.arange(1, 3*N, 3)
     A = A.at[indices, indices-1].set(1)
     A = A.at[indices, indices].set(1)
     A = A.at[indices, indices+1].set(1)
     A = A.at[indices, indices+2].set(1)
     
-    indices = jnp.arange(2, 4*N, 4)
-    addr_A_N_1 = (indices + 4*N - 6) % (4*N)
+    indices = jnp.arange(2, 3*N, 3)
+    addr_A_N_1 = (indices + 3*N - 5) % (3*N)
     A = A.at[indices, indices-1].set(-1)
     A = A.at[indices, addr_A_N_1 + 1].set(1)
     A = A.at[indices, addr_A_N_1 + 2].set(2)
-    A = A.at[indices, addr_A_N_1 + 3].set(3)
+    # A = A.at[indices, addr_A_N_1 + 3].set(3)
     
-    indices = jnp.arange(3, 4*N, 4)
-    addr_A_N_1 = (indices + 4*N - 7) % (4*N)
-    A = A.at[indices, indices-1].set(-2)
-    A = A.at[indices, addr_A_N_1 + 2].set(2)
-    A = A.at[indices, addr_A_N_1 + 3].set(6)
+    # indices = jnp.arange(3, 4*N, 4)
+    # addr_A_N_1 = (indices + 4*N - 7) % (4*N)
+    # A = A.at[indices, indices-1].set(-2)
+    # A = A.at[indices, addr_A_N_1 + 2].set(2)
+    # A = A.at[indices, addr_A_N_1 + 3].set(6)
     
     A_inv = jnp.linalg.inv(A)
     A_inv = jnp.where(jnp.isclose(A_inv, 0, atol=1e-15), 0, A_inv)
@@ -77,27 +77,40 @@ def matAInv(N: int):
 
 @jit
 def A_ex_comp(N: int, component: int):
-    A_ex = jnp.zeros((N, 4*N), dtype=jnp.float64)
+    # A_ex = jnp.zeros((N, 4*N), dtype=jnp.float64)
+    A_ex = jnp.zeros((N, 3*N), dtype=jnp.float64)
     indices = jnp.arange(N)
-    A_ex = A_ex.at[indices, 4*indices + component].set(1)
+    # A_ex = A_ex.at[indices, 4*indices + component].set(1)
+    A_ex = A_ex.at[indices, 3*indices + component].set(1)
     return A_ex
 
 @jit
 def q_comp(centreline, component: int):
     N = centreline.N
-    q = jnp.zeros(4 * N, dtype=jnp.float64)
+    # q = jnp.zeros(4 * N, dtype=jnp.float64)
+    q = jnp.zeros(3 * N, dtype=jnp.float64)
     indices = jnp.arange(N)
-    q = q.at[4 * indices].set(centreline.p[indices, component])
-    q = q.at[4 * indices + 1].set(centreline.p[(indices + 1) % N, component])
+    # q = q.at[4 * indices].set(centreline.p[indices, component])
+    q = q.at[3 * indices].set(centreline.p[indices, component])
+
+    # q = q.at[4 * indices + 1].set(centreline.p[(indices + 1) % N, component])
+    q = q.at[3 * indices + 1].set(centreline.p[(indices + 1) % N, component])
+
     return q
 
 @jit
 def M_comp(centreline, component: int):
     N = centreline.N
-    M = jnp.zeros((4 * N, N), dtype=jnp.float64)
+    # M = jnp.zeros((4 * N, N), dtype=jnp.float64)
+    M = jnp.zeros((3 * N, N), dtype=jnp.float64)
+
     indices = jnp.arange(N)
-    M = M.at[4 * indices, indices].set(centreline.n[indices, component])
-    M = M.at[4 * indices + 1, (indices + 1) % N].set(centreline.n[(indices + 1) % N, component])
+    # M = M.at[4 * indices, indices].set(centreline.n[indices, component])
+    M = M.at[3 * indices, indices].set(centreline.n[indices, component])
+
+    # M = M.at[4 * indices + 1, (indices + 1) % N].set(centreline.n[(indices + 1) % N, component])
+    M = M.at[3 * indices + 1, (indices + 1) % N].set(centreline.n[(indices + 1) % N, component])
+
     return M
 
 @jit
