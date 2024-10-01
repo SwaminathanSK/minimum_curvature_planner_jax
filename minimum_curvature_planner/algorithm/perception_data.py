@@ -15,6 +15,7 @@ class Centreline:
         self.p = jnp.array(np.array(p, dtype=np.float32))
         self.half_w_tr = jnp.array(np.array(half_track_width, dtype=np.float32))
         self.w_veh = jnp.float32(vehicle_width)
+        self.n = None
 
     def calc_n(self, x_derivatives, y_derivatives):
         self.n = jnp.stack([y_derivatives, -x_derivatives], axis=-1)
