@@ -77,24 +77,24 @@ def matAInv(N: int):
 
 @jit
 def A_ex_comp(N: int, component: int):
-    A_ex = jnp.zeros((N, 4*N), dtype=jnp.float64)
+    A_ex = jnp.zeros((N, 4*N), dtype=jnp.float32)
     indices = jnp.arange(N)
     A_ex = A_ex.at[indices, 4*indices + component].set(1)
     return A_ex
 
-@jit
 def q_comp(centreline, component: int):
     N = centreline.N
-    q = jnp.zeros(4 * N, dtype=jnp.float64)
-    indices = jnp.arange(N)
-    q = q.at[4 * indices].set(centreline.p[indices, component])
-    q = q.at[4 * indices + 1].set(centreline.p[(indices + 1) % N, component])
-    return q
+    q = jnp.arange(4 * N, dtype=jnp.uint32)
+    @jit
+    def q_i(i):
+        q = jnp.uint8(i%4 == 0)*centreline.p[i//4, component] + jnp.uint8(i%4 == 1)*centreline.p[(i//4 + 1) % N, component]
+        return q
+    return jax.vmap(q_i)(q)
 
 @jit
 def M_comp(centreline, component: int):
     N = centreline.N
-    M = jnp.zeros((4 * N, N), dtype=jnp.float64)
+    M = jnp.zeros((4 * N, N), dtype=jnp.float32)
     indices = jnp.arange(N)
     M = M.at[4 * indices, indices].set(centreline.n[indices, component])
     M = M.at[4 * indices + 1, (indices + 1) % N].set(centreline.n[(indices + 1) % N, component])
